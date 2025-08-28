@@ -1,44 +1,124 @@
-import {useState, useEffect} from 'react';
-import {View, Text, StyleSheet, FlatList} from 'react-native';
-import Api from '../components/Api';
- 
-export default function Investimento(){
-    const [dados, setDados] = useState<any[]>([]);
- 
-  async function buscaDados() {
-  const response = await Api.get('finance?key=a040d0ad');
-  console.log(response.data.results);
-}
-    useEffect(
-        ()=>{buscaDados()
-        },[]);
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image, TextInput } from 'react-native';
 
-        const [VlInicial, setVlInicial] = useState ('');
-        const [ApMensal, setApMensal] = useState ('');
-        const [Meses, setMeses] = useState ('');
-        const [TaxaAno, setTaxaAno] = useState ('');
+export default function Investimento() {
+  const [investimentoInicial, setInvestimentoInicial] = useState<string>('');
+  const [aporteMensal, setAporteMensal] = useState<string>('');
+  const [aporteTempo, setAporteTempo] = useState<string>('');
+  const [resultado, setResultado] = useState<number | null>(null);
 
- 
-    return(
-        <View style={styles.bloco}>
-            <Text style={styles.Texto}>Investimentos</Text>
-        </View>
-    );
-}
- 
-const styles = StyleSheet.create({
-    bloco:{
-        flex:1,
-        alignItems:'center',
-        justifyContent:'flex-start',
-        marginTop:40,
-    },
-    Texto:{
-        fontSize:20,
-    },
-    lista:{
-        height:'70%',
-        width:'100%'
+  const calcularInvestimento = () => {
+    let montante = Number(investimentoInicial);
+    const aporte = Number(aporteMensal);
+    const meses = Number(aporteTempo);
+
+    if (isNaN(montante) || isNaN(aporte) || isNaN(meses)) {
+      setResultado(null);
+      return;
     }
-   
+
+    const taxaAnual = 12;
+    const taxaMes = Math.pow(1 + taxaAnual / 100, 1 / 12) - 1;
+
+    for (let i = 0; i < meses; i++) {
+      montante = montante * (1 + taxaMes) + aporte;
+    }
+
+    setResultado(montante);
+  };
+
+  return (
+    <View style={styles.bloco}>
+      <Image source={require('../assets/Logo(1).png')} style={styles.logo} />
+      <Text style={styles.text}>Investimento</Text>
+
+      <Text style={styles.label}>Valor de Investimento inicial:</Text>
+      <TextInput
+        style={styles.input}
+        value={investimentoInicial}
+        onChangeText={setInvestimentoInicial}
+        keyboardType="numeric"
+      />
+
+      <Text style={styles.label}>Aporte mensal:</Text>
+      <TextInput
+        style={styles.input}
+        value={aporteMensal}
+        onChangeText={setAporteMensal}
+        keyboardType="numeric"
+      />
+
+      <Text style={styles.label}>Aporte Tempo</Text>
+      <TextInput
+        style={styles.input}
+        value={aporteTempo}
+        onChangeText={setAporteTempo}
+        keyboardType="numeric"
+      />
+
+      <TouchableOpacity style={styles.btn} onPress={calcularInvestimento}>
+        <Text style={styles.textoBtn}>Calcular Investimento</Text>
+      </TouchableOpacity>
+
+      {resultado !== null && (
+        <Text style={styles.resultado}>
+          {resultado.toFixed(2)}
+        </Text>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  bloco: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor:'#f6f4f0',
+  },
+  text: {
+    marginBottom: 15,
+    fontSize: 30,
+  },
+  btn: {
+    backgroundColor: '#cdc6b7',
+    width: '80%',
+    padding: 12,
+    marginBottom: 20,
+    marginTop: 20,
+    borderRadius: 30,
+  },
+  textoBtn: {
+    color: '#000',
+    fontSize: 20,
+    textAlign: 'center',
+  },
+  logo: {
+    marginBottom:25,
+    height:'20%',
+    width: '30%',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#999',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 20,
+    fontSize: 16,
+    width: '85%',
+    textAlign: 'left',
+  },
+  label: {
+    fontSize: 18,
+    marginBottom: 5,
+    textAlign: 'left',
+    alignSelf: 'flex-start',
+    marginLeft: 30,
+  },
+  resultado: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    marginTop: 10,
+    color: '#333',
+  },
 });
